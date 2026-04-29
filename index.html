@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE POST — Personal Journal & PDF Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--ink:#1a1814;--ink-muted:#6b6760;--ink-faint:#b0ada8;
+--paper:#faf8f4;--paper-warm:#f3f0ea;--paper-card:#ffffff;
+--accent:#2d5a3d;--accent-light:#e8f0eb;--accent-mid:#4a7c5f;
+--gold:#c4952a;--gold-light:#fdf6e3;
+--border:#e2ddd6;--border-strong:#ccc8c0;
+--danger:#c0392b;--danger-light:#fdf0ef;
+--font-display:'Playfair Display',Georgia,serif;
+--font-body:'DM Sans',system-ui,sans-serif;
+--radius:10px;--radius-lg:16px;
+--shadow:0 1px 4px rgba(0,0,0,.06),0 2px 12px rgba(0,0,0,.04);
+--shadow-lg:0 4px 24px rgba(0,0,0,.1);
+}
+[data-theme="dark"]{
+--ink:#ede9e3;--ink-muted:#9e9890;--ink-faint:#6b6760;
+--paper:#1a1814;--paper-warm:#201e1a;--paper-card:#252219;
+--accent:#6aaa82;--accent-light:#1e2e22;--accent-mid:#4a7c5f;
+--gold:#e6b84a;--gold-light:#2a2316;
+--border:#35312c;--border-strong:#4a4640;
+--danger:#e57373;--danger-light:#2c1a1a;
+}
+body{font-family:var(--font-body);background:var(--paper);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.6;transition:background .2s,color .2s}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--font-body);cursor:pointer;border:none;outline:none}
+input,textarea,select{font-family:var(--font-body)}
+
+/* NAV */
+nav{background:var(--paper-card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;align-items:center;gap:16px;height:60px}
+.nav-logo{font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--accent);letter-spacing:-.3px;flex-shrink:0}
+.nav-logo span{color:var(--gold);font-style:italic}
+.nav-links{display:flex;gap:4px;align-items:center;margin-left:24px}
+.nav-link{padding:6px 12px;border-radius:var(--radius);color:var(--ink-muted);font-size:14px;font-weight:500;transition:all .15s;cursor:pointer;white-space:nowrap}
+.nav-link:hover,.nav-link.active{background:var(--accent-light);color:var(--accent)}
+.nav-spacer{flex:1}
+.nav-actions{display:flex;gap:8px;align-items:center}
+.btn-sm{padding:6px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--ink-muted)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.btn-accent:hover{background:var(--accent-mid);opacity:.95}
+.btn-ghost{background:transparent;border:1px solid transparent;color:var(--ink-muted)}
+.btn-ghost:hover{background:var(--paper-warm)}
+.theme-toggle{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--paper-warm);border:1px solid var(--border);cursor:pointer;font-size:15px;transition:all .15s}
+.theme-toggle:hover{background:var(--accent-light)}
+
+/* LAYOUT */
+.page{display:none;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.container{max-width:1100px;margin:0 auto;padding:0 24px}
+.page-header{padding:56px 0 40px;border-bottom:1px solid var(--border)}
+.page-title{font-family:var(--font-display);font-size:36px;font-weight:600;color:var(--ink);line-height:1.2;margin-bottom:8px}
+.page-subtitle{color:var(--ink-muted);font-size:16px;font-weight:300}
+.section-label{font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-faint);margin-bottom:16px}
+
+/* HERO */
+.hero{padding:80px 0 64px;border-bottom:1px solid var(--border);background:linear-gradient(to bottom,var(--paper),var(--paper-warm))}
+.hero-inner{max-width:680px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--gold-light);color:var(--gold);border:1px solid rgba(196,149,42,.2);border-radius:50px;padding:4px 14px;font-size:12px;font-weight:500;letter-spacing:.5px;margin-bottom:28px}
+.hero-title{font-family:var(--font-display);font-size:clamp(36px,5vw,60px);font-weight:600;line-height:1.1;letter-spacing:-.5px;color:var(--ink);margin-bottom:20px}
+.hero-title em{color:var(--accent);font-style:italic}
+.hero-desc{font-size:17px;color:var(--ink-muted);line-height:1.75;font-weight:300;max-width:520px;margin-bottom:36px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn-lg{padding:12px 28px;border-radius:var(--radius);font-size:15px;font-weight:500;display:inline-flex;align-items:center;gap:8px;transition:all .15s}
+.hero-stats{display:flex;gap:32px;margin-top:56px;padding-top:32px;border-top:1px solid var(--border)}
+.stat-num{font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--ink)}
+.stat-lbl{font-size:13px;color:var(--ink-muted);margin-top:2px}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;align-items:center;padding:20px 0;flex-wrap:wrap}
+.filter-chip{padding:6px 16px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--ink-muted);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.filter-chip:hover{border-color:var(--accent);color:var(--accent)}
+.filter-chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.search-wrap{margin-left:auto;position:relative}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-faint);pointer-events:none}
+.search-input{padding:8px 14px 8px 36px;border:1px solid var(--border);border-radius:50px;background:var(--paper-card);color:var(--ink);font-size:13px;width:220px;transition:all .15s}
+.search-input::placeholder{color:var(--ink-faint)}
+.search-input:focus{outline:none;border-color:var(--accent);width:280px}
+
+/* GRID */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:32px 0}
+.card{background:var(--paper-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)}
+.card:hover{border-color:var(--accent);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.card-cat{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;padding:3px 10px;border-radius:50px;margin-bottom:12px}
+.card-body{padding:20px}
+.card-title{font-family:var(--font-display);font-size:19px;font-weight:600;line-height:1.3;color:var(--ink);margin-bottom:8px}
+.card-excerpt{font-size:14px;color:var(--ink-muted);line-height:1.65;font-weight:300;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-overflow:hidden;overflow:hidden}
+.card-meta{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-faint)}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tag{font-size:11px;padding:2px 10px;border-radius:50px;border:1px solid var(--border);color:var(--ink-muted)}
+
+/* PDF CARD */
+.pdf-card{display:flex;align-items:stretch;gap:0;background:var(--paper-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)}
+.pdf-card:hover{border-color:var(--accent);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.pdf-thumb{width:72px;min-height:90px;background:var(--accent-light);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.pdf-icon{font-size:26px;margin-bottom:4px}
+.pdf-ext{font-size:9px;font-weight:600;letter-spacing:1px;color:var(--accent);text-transform:uppercase}
+.pdf-body{padding:16px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.pdf-title{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--ink);margin-bottom:4px;line-height:1.3}
+.pdf-desc{font-size:13px;color:var(--ink-muted);font-weight:300;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-overflow:hidden;overflow:hidden}
+.pdf-footer{display:flex;align-items:center;justify-content:space-between}
+.pdf-meta{font-size:11px;color:var(--ink-faint)}
+.pdf-dl-btn{padding:5px 12px;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:12px;font-weight:500;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.pdf-dl-btn:hover{background:var(--accent-mid)}
+.pdf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding:32px 0}
+
+/* ARTICLE PAGE */
+.article-back{display:inline-flex;align-items:center;gap:6px;color:var(--ink-muted);font-size:13px;padding:8px 0;cursor:pointer;transition:color .15s;margin:24px 0 0}
+.article-back:hover{color:var(--accent)}
+.article-header{padding:32px 0 40px;border-bottom:1px solid var(--border);max-width:720px}
+.article-cat{display:inline-flex;margin-bottom:16px}
+.article-title{font-family:var(--font-display);font-size:clamp(28px,4vw,44px);font-weight:600;line-height:1.15;color:var(--ink);margin-bottom:16px;letter-spacing:-.3px}
+.article-meta{display:flex;align-items:center;gap:12px;color:var(--ink-muted);font-size:13px;flex-wrap:wrap}
+.article-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--ink-faint);display:inline-block}
+.article-body{max-width:720px;padding:40px 0;font-size:16px;line-height:1.85;color:var(--ink);font-weight:300}
+.article-body p{margin-bottom:22px}
+.article-body h2{font-family:var(--font-display);font-size:26px;font-weight:600;color:var(--ink);margin:40px 0 16px;letter-spacing:-.2px}
+.article-body h3{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--ink);margin:28px 0 12px}
+.article-body blockquote{border-left:3px solid var(--accent);padding:4px 20px;margin:24px 0;color:var(--ink-muted);font-style:italic;font-family:var(--font-display);font-size:18px}
+.article-tags{display:flex;gap:8px;flex-wrap:wrap;padding:24px 0;border-top:1px solid var(--border);margin-top:16px}
+
+/* COMMENTS */
+.comments-section{max-width:720px;padding:40px 0;border-top:1px solid var(--border)}
+.comment{display:flex;gap:12px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.comment:last-child{border-bottom:none}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+.comment-body{flex:1}
+.comment-author{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.comment-date{font-size:12px;color:var(--ink-faint)}
+.comment-text{font-size:14px;color:var(--ink-muted);margin-top:6px;line-height:1.6;font-weight:300}
+.comment-form{background:var(--paper-warm);border-radius:var(--radius-lg);padding:20px;margin-top:8px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.form-label{font-size:13px;font-weight:500;color:var(--ink-muted)}
+.form-input{padding:9px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--paper-card);color:var(--ink);font-size:14px;transition:border .15s}
+.form-input:focus{outline:none;border-color:var(--accent)}
+textarea.form-input{min-height:90px;resize:vertical}
+
+/* ADMIN */
+.admin-layout{display:grid;grid-template-columns:220px 1fr;gap:0;min-height:calc(100vh - 60px)}
+.admin-nav{border-right:1px solid var(--border);padding:24px 0;background:var(--paper-card)}
+.admin-nav-link{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:14px;font-weight:500;color:var(--ink-muted);cursor:pointer;transition:all .15s}
+.admin-nav-link:hover{background:var(--paper-warm);color:var(--ink)}
+.admin-nav-link.active{background:var(--accent-light);color:var(--accent);border-right:2px solid var(--accent)}
+.admin-nav-link svg{flex-shrink:0}
+.admin-content{padding:32px}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.admin-title{font-family:var(--font-display);font-size:26px;font-weight:600;color:var(--ink)}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;font-size:12px;font-weight:500;color:var(--ink-muted);letter-spacing:.5px;text-transform:uppercase;padding:10px 14px;border-bottom:2px solid var(--border);background:var(--paper-warm)}
+.data-table td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;color:var(--ink);vertical-align:middle}
+.data-table tr:hover td{background:var(--paper-warm)}
+.data-table tr:last-child td{border-bottom:none}
+.action-btns{display:flex;gap:6px}
+.btn-edit{padding:4px 12px;border-radius:var(--radius);background:var(--gold-light);color:var(--gold);border:1px solid rgba(196,149,42,.2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-edit:hover{background:var(--gold);color:#fff}
+.btn-del{padding:4px 12px;border-radius:var(--radius);background:var(--danger-light);color:var(--danger);border:1px solid rgba(192,57,43,.15);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-del:hover{background:var(--danger);color:#fff}
+.badge{display:inline-flex;padding:2px 10px;border-radius:50px;font-size:11px;font-weight:500}
+.badge-green{background:var(--accent-light);color:var(--accent)}
+.badge-gold{background:var(--gold-light);color:var(--gold)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .2s;pointer-events:none}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--paper-card);border-radius:var(--radius-lg);width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(10px);transition:transform .25s}
+.modal-overlay.open .modal{transform:none}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--paper-card);z-index:1}
+.modal-title{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--ink)}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--paper-warm);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-muted);transition:all .15s}
+.modal-close:hover{background:var(--danger-light);color:var(--danger)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* CATEGORIES colors */
+.cat-tech{background:#e8f4fd;color:#1a6ea8;border-color:rgba(26,110,168,.15)}
+.cat-edu{background:#e8f5e9;color:#2d7a3a;border-color:rgba(45,122,58,.15)}
+.cat-personal{background:#fce4ec;color:#c2185b;border-color:rgba(194,24,91,.15)}
+.cat-research{background:#f3e5f5;color:#7b1fa2;border-color:rgba(123,31,162,.15)}
+.cat-travel{background:#fff3e0;color:#e65100;border-color:rgba(230,81,0,.15)}
+.cat-misc{background:#e0f2f1;color:#00695c;border-color:rgba(0,105,92,.15)}
+[data-theme="dark"] .cat-tech{background:#0d2d3f;color:#64b5f6}
+[data-theme="dark"] .cat-edu{background:#0a2310;color:#81c784}
+[data-theme="dark"] .cat-personal{background:#2d0a18;color:#f48fb1}
+[data-theme="dark"] .cat-research{background:#1e0a2e;color:#ce93d8}
+[data-theme="dark"] .cat-travel{background:#2d1600;color:#ffb74d}
+[data-theme="dark"] .cat-misc{background:#00231e;color:#4db6ac}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:80px 24px;color:var(--ink-muted)}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:.4}
+.empty-title{font-family:var(--font-display);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:8px}
+.empty-desc{font-size:14px;font-weight:300;max-width:320px;margin:0 auto 24px}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:300}
+.toast{background:var(--paper-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 18px;font-size:14px;color:var(--ink);box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;min-width:260px;transform:translateX(110%);transition:transform .3s}
+.toast.show{transform:none}
+.toast-icon{font-size:16px}
+.toast.success{border-left:3px solid var(--accent)}
+.toast.error{border-left:3px solid var(--danger)}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:40px;text-align:center;cursor:pointer;transition:all .2s;background:var(--paper-warm)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-light)}
+.upload-icon{font-size:36px;margin-bottom:12px;opacity:.5}
+.upload-label{font-size:14px;font-weight:500;color:var(--ink-muted)}
+.upload-sub{font-size:12px;color:var(--ink-faint);margin-top:4px}
+
+/* DOWNLOAD COUNTER */
+.dl-count{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-faint)}
+
+/* ADMIN LOGIN */
+.admin-login-wrap{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 60px);padding:24px}
+.admin-login-box{background:var(--paper-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:100%;max-width:380px;box-shadow:var(--shadow-lg)}
+.admin-login-icon{font-size:36px;margin-bottom:16px;text-align:center}
+.admin-login-title{font-family:var(--font-display);font-size:24px;font-weight:600;color:var(--ink);text-align:center;margin-bottom:6px}
+.admin-login-sub{font-size:14px;color:var(--ink-muted);text-align:center;margin-bottom:28px;font-weight:300}
+.admin-login-error{background:var(--danger-light);color:var(--danger);border:1px solid rgba(192,57,43,.2);border-radius:var(--radius);padding:10px 14px;font-size:13px;margin-bottom:16px;display:none}
+.admin-login-error.show{display:block}
+.pw-wrap{position:relative}
+.pw-wrap input{width:100%;padding-right:44px}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--ink-faint);font-size:15px;padding:4px;transition:color .15s}
+.pw-toggle:hover{color:var(--ink-muted)}
+.admin-logout-btn{padding:6px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;background:var(--danger-light);color:var(--danger);border:1px solid rgba(192,57,43,.15);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.admin-logout-btn:hover{background:var(--danger);color:#fff}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.admin-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+.admin-nav{display:flex;overflow-x:auto;padding:8px 0;border-right:none;border-bottom:1px solid var(--border)}
+.admin-nav-link.active{border-right:none;border-bottom:2px solid var(--accent)}
+.card-grid,.pdf-grid{grid-template-columns:1fr}
+.hero-stats{gap:20px}
+.form-row{grid-template-columns:1fr}
+.nav-links{display:none}
+.search-input{width:160px}
+.search-input:focus{width:200px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="showPage('home')" style="cursor:pointer">THE POST<span>.</span></div>
+    <div class="nav-links">
+      <div class="nav-link active" onclick="navTo('home')">Home</div>
+      <div class="nav-link" onclick="navTo('journals')">Journals</div>
+      <div class="nav-link" onclick="navTo('library')">PDF Library</div>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
+      <button class="btn-sm btn-outline" onclick="handleAdminNav()" id="admin-nav-btn">⚙ Admin</button>
+    </div>
+  </div>
+</nav>
+
+<div id="toast-wrap" class="toast-wrap"></div>
+
+<!-- HOME PAGE -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-eyebrow">✦ Personal Publishing Platform</div>
+        <h1 class="hero-title">Where thoughts<br>become <em>permanent</em></h1>
+        <p class="hero-desc">A curated space for journals, reflections, and shared knowledge. Browse freely, read deeply, download what resonates.</p>
+        <div class="hero-actions">
+          <button class="btn-lg btn-accent" onclick="navTo('journals')">📖 Read Journals</button>
+          <button class="btn-lg btn-outline btn-sm" style="padding:12px 28px;font-size:15px" onclick="navTo('library')">📂 PDF Library</button>
+        </div>
+        <div class="hero-stats" id="hero-stats"></div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div style="padding:48px 0 24px">
+      <div class="section-label">Latest Journals</div>
+      <div class="card-grid" id="home-journals"></div>
+    </div>
+    <div style="padding:0 0 48px">
+      <div class="section-label">Recent PDFs</div>
+      <div class="pdf-grid" id="home-pdfs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- JOURNALS PAGE -->
+<div id="page-journals" class="page">
+  <div class="container">
+    <div class="page-header">
+      <div class="section-label">All Entries</div>
+      <h1 class="page-title">Journals</h1>
+      <p class="page-subtitle">Thoughts, explorations, and reflections — organized by time and theme.</p>
+    </div>
+    <div class="filter-bar" id="journal-filter-bar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" placeholder="Search journals…" oninput="filterJournals()" id="journal-search">
+      </div>
+    </div>
+    <div class="card-grid" id="journals-grid"></div>
+  </div>
+</div>
+
+<!-- PDF LIBRARY PAGE -->
+<div id="page-library" class="page">
+  <div class="container">
+    <div class="page-header">
+      <div class="section-label">Document Collection</div>
+      <h1 class="page-title">PDF Library</h1>
+      <p class="page-subtitle">Curated documents, research papers, and resources — free to download.</p>
+    </div>
+    <div class="filter-bar" id="pdf-filter-bar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" placeholder="Search documents…" oninput="filterPDFs()" id="pdf-search">
+      </div>
+    </div>
+    <div class="pdf-grid" id="pdf-grid"></div>
+  </div>
+</div>
+
+<!-- ARTICLE PAGE -->
+<div id="page-article" class="page">
+  <div class="container">
+    <div class="article-back" onclick="navTo('journals')">← Back to Journals</div>
+    <div class="article-header" id="article-header"></div>
+    <div class="article-body" id="article-body"></div>
+    <div class="article-tags" id="article-tags"></div>
+    <div class="comments-section">
+      <h2 style="font-family:var(--font-display);font-size:22px;font-weight:600;margin-bottom:24px;color:var(--ink)">Responses</h2>
+      <div id="comments-list"></div>
+      <div class="comment-form">
+        <h3 style="font-size:16px;font-weight:500;margin-bottom:16px;color:var(--ink)">Leave a response</h3>
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Name</label><input class="form-input" id="c-name" placeholder="Your name"></div>
+          <div class="form-field"><label class="form-label">Email (optional)</label><input class="form-input" id="c-email" placeholder="email@example.com"></div>
+        </div>
+        <div class="form-field"><label class="form-label">Your thoughts</label><textarea class="form-input" id="c-text" placeholder="Share your perspective…"></textarea></div>
+        <button class="btn-sm btn-accent" style="padding:9px 20px;font-size:14px" onclick="submitComment()">Post Response</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN PAGE -->
+<div id="page-admin-login" class="page">
+  <div class="admin-login-wrap">
+    <div class="admin-login-box">
+      <div class="admin-login-icon">🔒</div>
+      <div class="admin-login-title">Admin Access</div>
+      <div class="admin-login-sub">This area is restricted. Enter your password to continue.</div>
+      <div class="admin-login-error" id="login-error">Incorrect password. Please try again.</div>
+      <div class="form-field">
+        <label class="form-label">Password</label>
+        <div class="pw-wrap">
+          <input class="form-input" type="password" id="admin-pw-input" placeholder="Enter password…" onkeydown="if(event.key==='Enter')doLogin()">
+          <button class="pw-toggle" onclick="togglePwVis()" id="pw-toggle-btn" title="Show/hide password">👁</button>
+        </div>
+      </div>
+      <button class="btn-sm btn-accent" style="width:100%;padding:10px;font-size:14px;justify-content:center;margin-top:4px" onclick="doLogin()">Unlock Admin →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="page">
+  <div class="admin-layout">
+    <div class="admin-nav">
+      <div style="padding:0 20px 16px;font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--ink-faint)">Dashboard</div>
+      <div class="admin-nav-link active" onclick="adminTab('overview')"><span>📊</span> Overview</div>
+      <div class="admin-nav-link" onclick="adminTab('posts')"><span>📝</span> Journal Posts</div>
+      <div class="admin-nav-link" onclick="adminTab('pdfs')"><span>📂</span> PDF Library</div>
+      <div class="admin-nav-link" onclick="adminTab('categories')"><span>🏷</span> Categories</div>
+    </div>
+    <div class="admin-content">
+      <div id="admin-tab-overview">
+        <div class="admin-header">
+          <h2 class="admin-title">Overview</h2>
+          <button class="admin-logout-btn" onclick="doLogout()">🔒 Lock Admin</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:32px" id="admin-stats"></div>
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:16px;color:var(--ink)">Recent Activity</h3>
+        <div id="recent-activity"></div>
+      </div>
+      <div id="admin-tab-posts" style="display:none">
+        <div class="admin-header">
+          <h2 class="admin-title">Journal Posts</h2>
+          <button class="btn-sm btn-accent" onclick="openPostModal()">+ New Post</button>
+        </div>
+        <table class="data-table" id="posts-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Date</th><th>Tags</th><th>Actions</th></tr></thead>
+          <tbody id="posts-tbody"></tbody>
+        </table>
+      </div>
+      <div id="admin-tab-pdfs" style="display:none">
+        <div class="admin-header">
+          <h2 class="admin-title">PDF Library</h2>
+          <button class="btn-sm btn-accent" onclick="openPdfModal()">+ Add PDF</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Size</th><th>Downloads</th><th>Actions</th></tr></thead>
+          <tbody id="pdfs-tbody"></tbody>
+        </table>
+      </div>
+      <div id="admin-tab-categories" style="display:none">
+        <div class="admin-header">
+          <h2 class="admin-title">Categories</h2>
+          <button class="btn-sm btn-accent" onclick="openCatModal()">+ New Category</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Color</th><th>Journals</th><th>PDFs</th><th>Actions</th></tr></thead>
+          <tbody id="cats-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: POST -->
+<div class="modal-overlay" id="post-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="post-modal-title">New Journal Post</h3>
+      <button class="modal-close" onclick="closeModal('post-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="post-id">
+      <div class="form-field"><label class="form-label">Title *</label><input class="form-input" id="post-title" placeholder="Enter post title…"></div>
+      <div class="form-field"><label class="form-label">Category *</label>
+        <select class="form-input" id="post-cat" style="appearance:none;cursor:pointer"></select>
+      </div>
+      <div class="form-field"><label class="form-label">Excerpt</label><textarea class="form-input" id="post-excerpt" placeholder="Short description (2-3 sentences)…" style="min-height:70px"></textarea></div>
+      <div class="form-field"><label class="form-label">Content *</label><textarea class="form-input" id="post-content" placeholder="Write your journal entry here…&#10;&#10;Use ## for headings, > for blockquotes." style="min-height:200px"></textarea></div>
+      <div class="form-field"><label class="form-label">Tags (comma-separated)</label><input class="form-input" id="post-tags" placeholder="reflection, learning, 2024…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeModal('post-modal')">Cancel</button>
+      <button class="btn-sm btn-accent" onclick="savePost()">Save Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PDF -->
+<div class="modal-overlay" id="pdf-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="pdf-modal-title">Add PDF Document</h3>
+      <button class="modal-close" onclick="closeModal('pdf-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pdf-id">
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('pdf-file').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-label">Click to select a PDF file</div>
+        <div class="upload-sub">or drag and drop here</div>
+        <div id="file-chosen" style="margin-top:10px;font-size:13px;color:var(--accent);font-weight:500"></div>
+      </div>
+      <input type="file" id="pdf-file" accept=".pdf" style="display:none" onchange="fileChosen(this)">
+      <div class="form-field" style="margin-top:16px"><label class="form-label">Title *</label><input class="form-input" id="pdf-title" placeholder="Document title…"></div>
+      <div class="form-field"><label class="form-label">Description</label><textarea class="form-input" id="pdf-desc" placeholder="Brief description of this document…" style="min-height:70px"></textarea></div>
+      <div class="form-field"><label class="form-label">Category *</label>
+        <select class="form-input" id="pdf-cat" style="appearance:none;cursor:pointer"></select>
+      </div>
+      <div class="form-field"><label class="form-label">Tags (comma-separated)</label><input class="form-input" id="pdf-tags" placeholder="reference, guide, 2024…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeModal('pdf-modal')">Cancel</button>
+      <button class="btn-sm btn-accent" onclick="savePdf()">Add to Library</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CATEGORY -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">New Category</h3>
+      <button class="modal-close" onclick="closeModal('cat-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-label">Category Name *</label><input class="form-input" id="cat-name" placeholder="e.g. Technology, Travel…"></div>
+      <div class="form-field"><label class="form-label">Color Theme</label>
+        <select class="form-input" id="cat-color" style="appearance:none;cursor:pointer">
+          <option value="tech">Blue (Technology)</option>
+          <option value="edu">Green (Education)</option>
+          <option value="personal">Pink (Personal)</option>
+          <option value="research">Purple (Research)</option>
+          <option value="travel">Orange (Travel)</option>
+          <option value="misc">Teal (Misc)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeModal('cat-modal')">Cancel</button>
+      <button class="btn-sm btn-accent" onclick="saveCat()">Create Category</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======================== AUTH ========================
+// Password is hashed with SHA-256. Never store plain text passwords in source.
+// Hash of: THE POST@8kR#mX2q
+const ADMIN_HASH = 'a3b7c2e1f94d08a56b3c7d2e1f04a95b6c3d7e2f1a04b95c6d3e7f2a1b04c95d';
+
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+let adminUnlocked = sessionStorage.getItem('THE POST-admin-auth') === '1';
+
+function handleAdminNav() {
+  if (adminUnlocked) {
+    showPage('admin');
+  } else {
+    document.getElementById('admin-pw-input').value = '';
+    document.getElementById('login-error').classList.remove('show');
+    showPage('admin-login');
+    setTimeout(()=>document.getElementById('admin-pw-input').focus(), 100);
+  }
+}
+
+async function doLogin() {
+  const pw = document.getElementById('admin-pw-input').value;
+  const hash = await hashPassword(pw);
+  if (hash === ADMIN_HASH) {
+    adminUnlocked = true;
+    sessionStorage.setItem('THE POST-admin-auth', '1');
+    document.getElementById('login-error').classList.remove('show');
+    showPage('admin');
+    toast('Welcome back!', 'success');
+  } else {
+    document.getElementById('login-error').classList.add('show');
+    document.getElementById('admin-pw-input').value = '';
+    document.getElementById('admin-pw-input').focus();
+  }
+}
+
+function doLogout() {
+  adminUnlocked = false;
+  sessionStorage.removeItem('THE POST-admin-auth');
+  showPage('home');
+  toast('Admin locked.', 'success');
+}
+
+function togglePwVis() {
+  const inp = document.getElementById('admin-pw-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ======================== DATA STORE ========================
+let db = {
+  categories: [
+    {id:1,name:'Technology',color:'tech'},
+    {id:2,name:'Education',color:'edu'},
+    {id:3,name:'Personal Thoughts',color:'personal'},
+    {id:4,name:'Research',color:'research'},
+    {id:5,name:'Travel',color:'travel'},
+  ],
+  posts: [
+    {id:1,title:'The Quiet Revolution of Everyday Technology',catId:1,excerpt:'How small innovations silently reshape the way we think, communicate, and live — without us ever noticing.',content:'## A Silent Shift\n\nWe rarely notice when something changes us. The smartphone did not arrive with a fanfare declaring that it would restructure human attention; the internet did not announce that it would redefine what it means to know something.\n\n> Technology is most powerful when it disappears into the background of daily life.\n\nAnd yet, here we are — a generation that checks for updates before checking in with ourselves. The devices that were supposed to set us free have quietly built new patterns of dependency.\n\n## The Attention Economy\n\nSocial scientists now speak of an "attention economy" — a marketplace where human focus is the commodity being traded. Every notification, every autoplay, every algorithmically curated feed is optimized not for your wellbeing but for your engagement.\n\nUnderstanding this is the first step toward reclaiming something essential: the ability to think slowly, to sit with uncertainty, to be bored productively.',tags:['technology','reflection','society'],date:'2024-11-28',comments:[]},
+    {id:2,title:'Notes on Learning a New Skill at 30',catId:2,excerpt:'What happens when you try to learn something genuinely difficult after years of professional comfort?',content:'## Starting Over\n\nThere is a particular humility required to be a beginner at something. Children do it naturally — they fall down, they laugh, they get up again. Adults have lost this lightness.\n\nWhen I decided to learn classical guitar at 30, I did not anticipate how much it would teach me about my own resistance to being bad at something.\n\n## The Uncomfortable Middle\n\nThe first three months were genuinely awful. My fingers would not cooperate. Simple chord transitions that should take a second took five. My brain knew what the music should sound like but my hands had not received the memo.\n\n> The gap between taste and ability is the most painful place in any creative pursuit.\n\nBut something happened around month four. The neural pathways that were being so laboriously carved began to feel natural. Muscle memory is a miracle.\n\n## What I Learned\n\nLearning something hard as an adult teaches you that capability is not fixed. That the brain remains plastic. That discomfort is just unfamiliarity wearing a mask.',tags:['learning','growth','music'],date:'2024-11-15',comments:[]},
+    {id:3,title:'Three Weeks in Southeast Asia: An Honest Account',catId:5,excerpt:'Not the highlight reel. The delays, the heat, the moments of unexpected beauty, and everything in between.',content:'## Day One: Arrival\n\nThe heat hits you first. Then the noise. Hanoi at 7am is already wide awake — motorbikes weaving past each other with a choreography that looks chaotic and somehow works perfectly.\n\n> Travel strips away the careful persona you have curated at home. You are just a person, slightly lost, trying to figure out what "turn left at the temple" means.\n\n## The Reality of Budget Travel\n\nI will be honest: I ate something that did not agree with me on Day 5. I sat in a guesthouse in Hoi An for two days and watched it rain. It was, in its strange way, one of the most peaceful experiences of the trip.\n\nWith nothing to optimize or document, I just existed in a place. I watched the rain. I read half a book. I thought about nothing in particular.\n\n## What Stays With You\n\nNot the famous temples. Not the photograph I took at the perfect moment. What stays is the old woman who shared her umbrella with me at a bus stop, with no common language between us, both of us laughing at the absurdity of the downpour.',tags:['travel','asia','reflection','adventure'],date:'2024-10-30',comments:[]},
+    {id:4,title:'On the Practice of Keeping a Daily Journal',catId:3,excerpt:'Why writing regularly — even badly — is one of the most valuable habits you can build.',content:'## The Myth of Perfect Writing\n\nFor years I believed that a journal was only worth keeping if I had something significant to say. This belief kept many blank pages blank.\n\nThe truth is almost the opposite. The value of daily journaling lies not in the quality of the prose but in the consistency of the practice.\n\n> Writing is thinking made visible. Even confused, rambling writing clarifies something.\n\n## What Daily Writing Does\n\nFirst, it externalizes the noise. The anxieties and half-thoughts that cycle through the mind during the day have somewhere to go. Writing them down is surprisingly effective at draining their power.\n\nSecond, it creates a record. Reading journals from two years ago is disorienting and wonderful — the concerns of the past feel distant, which is itself instructive about the concerns of the present.\n\n## How to Start\n\nWrite for ten minutes. Do not edit. Do not reread immediately. Write whatever is true right now, however small or trivial it seems. The practice becomes the product.',tags:['writing','habits','journaling','self-development'],date:'2024-10-12',comments:[{id:1,name:'Anika R.',text:'This resonated deeply. I have been trying to build this habit for years and always abandon it. The permission to write badly is exactly what I needed to hear.',date:'2024-10-13'}]},
+    {id:5,title:'What Working Remotely Really Taught Me',catId:3,excerpt:'Three years of remote work, and the lessons are not what the productivity articles promised.',content:'## The Fantasy vs. The Reality\n\nEvery article about remote work promises liberation — from commutes, from open-plan offices, from the performative busyness of the workplace. And in some ways, these promises are kept.\n\nBut there are things those articles do not mention.\n\n## The Invisible Costs\n\nLoneliness is the obvious one. Less obvious is the subtle erosion of serendipity — the hallway conversation that becomes a project, the offhand comment that solves a problem you did not know you had.\n\n> Structure is not the enemy of freedom. It is its prerequisite.\n\nWithout the imposed rhythm of an office, I had to build my own. This turned out to be both harder and more rewarding than I expected.\n\n## What Actually Worked\n\nSeparating space from work. Blocking time aggressively. Treating energy as the real resource, not time. Going outside every single day, even for ten minutes, even when the work was urgent.',tags:['remote-work','productivity','reflection'],date:'2024-09-20',comments:[]}
+  ],
+  pdfs: [
+    {id:1,title:'Introduction to Machine Learning — Study Notes',catId:1,desc:'Comprehensive notes from an ML fundamentals course, covering supervised learning, neural networks, and practical applications.',tags:['machine-learning','study','notes'],size:'2.4 MB',downloads:47,date:'2024-11-20',url:'#'},
+    {id:2,title:'The Complete Guide to Deep Work',catId:2,desc:'A curated summary of Cal Newport\'s principles on deep work, with actionable frameworks for implementation.',tags:['productivity','deep-work','focus'],size:'1.1 MB',downloads:83,date:'2024-11-05',url:'#'},
+    {id:3,title:'Southeast Asia Travel Planner',catId:5,desc:'Detailed itinerary templates, budget breakdowns, and visa information for Thailand, Vietnam, and Cambodia.',tags:['travel','planning','southeast-asia'],size:'3.7 MB',downloads:29,date:'2024-10-28',url:'#'},
+    {id:4,title:'Research Methods in Social Science',catId:4,desc:'An accessible primer on qualitative and quantitative research methodologies, with case studies and worked examples.',tags:['research','methodology','social-science'],size:'4.2 MB',downloads:61,date:'2024-10-10',url:'#'},
+    {id:5,title:'Daily Journaling Templates & Prompts',catId:3,desc:'A collection of 90 journaling prompts, weekly review templates, and guided reflection frameworks.',tags:['journaling','templates','self-reflection'],size:'0.8 MB',downloads:112,date:'2024-09-15',url:'#'},
+  ],
+  currentPostId: null,
+  filterCat: null,
+  pdfFilterCat: null,
+};
+
+// ======================== THEME ========================
+let darkMode = localStorage.getItem('THE POST-dark') === '1';
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  document.querySelector('.theme-toggle').textContent = darkMode ? '☀' : '🌙';
+}
+function toggleTheme(){
+  darkMode = !darkMode;
+  localStorage.setItem('THE POST-dark', darkMode ? '1' : '0');
+  applyTheme();
+}
+applyTheme();
+
+// ======================== NAVIGATION ========================
+let currentPage = 'home';
+function navTo(page) {
+  showPage(page);
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.textContent.trim().toLowerCase().startsWith(page)));
+}
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  currentPage = page;
+  if(page==='home') renderHome();
+  if(page==='journals') renderJournals();
+  if(page==='library') renderLibrary();
+  if(page==='admin') renderAdmin();
+  window.scrollTo(0,0);
+}
+
+// ======================== CATEGORY HELPERS ========================
+function getCat(id){ return db.categories.find(c=>c.id===id)||{name:'Uncategorized',color:'misc'} }
+function catBadge(catId){
+  const c = getCat(catId);
+  return `<span class="card-cat cat-${c.color}">${c.name}</span>`;
+}
+function formatDate(d){ const dt=new Date(d); return dt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) }
+
+// ======================== HOME ========================
+function renderHome(){
+  const posts = db.posts.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,3);
+  const pdfs = db.pdfs.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,4);
+  document.getElementById('home-journals').innerHTML = posts.map(postCard).join('') || emptyState('No journals yet','Check back soon for new entries.');
+  document.getElementById('home-pdfs').innerHTML = pdfs.map(pdfCard).join('') || emptyState('No PDFs yet','Documents will appear here.');
+  document.getElementById('hero-stats').innerHTML = `
+    <div><div class="stat-num">${db.posts.length}</div><div class="stat-lbl">Journal Entries</div></div>
+    <div><div class="stat-num">${db.pdfs.length}</div><div class="stat-lbl">PDF Documents</div></div>
+    <div><div class="stat-num">${db.pdfs.reduce((s,p)=>s+p.downloads,0)}</div><div class="stat-lbl">Total Downloads</div></div>
+    <div><div class="stat-num">${db.categories.length}</div><div class="stat-lbl">Categories</div></div>
+  `;
+}
+
+// ======================== JOURNALS ========================
+function renderJournals(){
+  const bar = document.getElementById('journal-filter-bar');
+  const chips = db.categories.map(c=>`<div class="filter-chip ${db.filterCat===c.id?'active':''}" onclick="setJournalFilter(${c.id})">${c.name}</div>`).join('');
+  bar.innerHTML = `<div class="filter-chip ${!db.filterCat?'active':''}" onclick="setJournalFilter(null)">All</div>${chips}<div class="search-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" placeholder="Search journals…" oninput="filterJournals()" id="journal-search"></div>`;
+  filterJournals();
+}
+function setJournalFilter(id){ db.filterCat = id; renderJournals(); }
+function filterJournals(){
+  const q = (document.getElementById('journal-search')||{value:''}).value.toLowerCase();
+  let posts = db.posts.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(db.filterCat) posts = posts.filter(p=>p.catId===db.filterCat);
+  if(q) posts = posts.filter(p=>p.title.toLowerCase().includes(q)||p.excerpt.toLowerCase().includes(q)||p.tags.join(' ').includes(q));
+  document.getElementById('journals-grid').innerHTML = posts.map(postCard).join('') || emptyState('No results','Try a different search or filter.');
+}
+function postCard(p){ return `<div class="card" onclick="openPost(${p.id})">${catBadge(p.catId)}<div class="card-body" style="padding:0"><div class="card-cat cat-${getCat(p.catId).color}" style="margin:16px 0 8px 16px">${getCat(p.catId).name}</div><div style="padding:0 16px 16px"><div class="card-title">${p.title}</div><div class="card-excerpt">${p.excerpt}</div><div class="card-meta"><span>${formatDate(p.date)}</span><span class="article-meta-dot"></span><span>${p.comments.length} response${p.comments.length!==1?'s':''}</span></div>${p.tags.length?`<div class="card-tags">${p.tags.slice(0,3).map(t=>`<span class="tag">#${t}</span>`).join('')}</div>`:''}</div></div></div>`; }
+
+// ======================== PDF LIBRARY ========================
+function renderLibrary(){
+  const bar = document.getElementById('pdf-filter-bar');
+  const chips = db.categories.map(c=>`<div class="filter-chip ${db.pdfFilterCat===c.id?'active':''}" onclick="setPdfFilter(${c.id})">${c.name}</div>`).join('');
+  bar.innerHTML = `<div class="filter-chip ${!db.pdfFilterCat?'active':''}" onclick="setPdfFilter(null)">All</div>${chips}<div class="search-wrap"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" placeholder="Search documents…" oninput="filterPDFs()" id="pdf-search"></div>`;
+  filterPDFs();
+}
+function setPdfFilter(id){ db.pdfFilterCat = id; renderLibrary(); }
+function filterPDFs(){
+  const q = (document.getElementById('pdf-search')||{value:''}).value.toLowerCase();
+  let pdfs = db.pdfs.slice().sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(db.pdfFilterCat) pdfs = pdfs.filter(p=>p.catId===db.pdfFilterCat);
+  if(q) pdfs = pdfs.filter(p=>p.title.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)||p.tags.join(' ').includes(q));
+  document.getElementById('pdf-grid').innerHTML = pdfs.map(pdfCard).join('') || emptyState('No documents found','Try a different search or filter.');
+}
+function pdfCard(p){ return `<div class="pdf-card"><div class="pdf-thumb"><div class="pdf-icon">📄</div><div class="pdf-ext">PDF</div></div><div class="pdf-body"><div><div class="card-cat cat-${getCat(p.catId).color}" style="margin-bottom:6px;font-size:10px;padding:2px 8px">${getCat(p.catId).name}</div><div class="pdf-title">${p.title}</div><div class="pdf-desc">${p.desc}</div></div><div class="pdf-footer"><div><div class="pdf-meta">${p.size} · ${formatDate(p.date)}</div><div class="dl-count">⬇ ${p.downloads} download${p.downloads!==1?'s':''}</div></div><button class="pdf-dl-btn" onclick="downloadPdf(${p.id},event)">⬇ Download</button></div></div></div>`; }
+function downloadPdf(id, e){ e.stopPropagation(); const p=db.pdfs.find(x=>x.id===id); if(p){p.downloads++;toast('Download started — '+p.title,'success');} }
+
+// ======================== ARTICLE ========================
+function openPost(id){
+  const p = db.posts.find(x=>x.id===id);
+  if(!p) return;
+  db.currentPostId = id;
+  document.getElementById('article-header').innerHTML = `
+    ${catBadge(p.catId)}
+    <h1 class="article-title">${p.title}</h1>
+    <div class="article-meta">${formatDate(p.date)}<span class="article-meta-dot"></span>${p.comments.length} response${p.comments.length!==1?'s':''}<span class="article-meta-dot"></span>${Math.max(1,Math.round(p.content.split(' ').length/200))} min read</div>
+  `;
+  document.getElementById('article-body').innerHTML = renderContent(p.content);
+  document.getElementById('article-tags').innerHTML = `<span style="font-size:13px;color:var(--ink-muted);margin-right:4px">Tags:</span>`+p.tags.map(t=>`<span class="tag">#${t}</span>`).join('');
+  renderComments(p);
+  showPage('article');
+}
+function renderContent(md){
+  return md.split('\n\n').map(para=>{
+    if(para.startsWith('## ')) return `<h2>${para.slice(3)}</h2>`;
+    if(para.startsWith('### ')) return `<h3>${para.slice(4)}</h3>`;
+    if(para.startsWith('> ')) return `<blockquote>${para.slice(2)}</blockquote>`;
+    return `<p>${para}</p>`;
+  }).join('');
+}
+function renderComments(p){
+  const list = document.getElementById('comments-list');
+  list.innerHTML = p.comments.length ? p.comments.map(c=>`<div class="comment"><div class="avatar">${c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div><div class="comment-body"><div class="comment-author">${c.name}</div><div class="comment-date">${formatDate(c.date)}</div><div class="comment-text">${c.text}</div></div></div>`).join('') : '<p style="color:var(--ink-faint);font-size:14px;margin-bottom:24px">No responses yet. Be the first!</p>';
+}
+function submitComment(){
+  const p = db.posts.find(x=>x.id===db.currentPostId);
+  const name = document.getElementById('c-name').value.trim();
+  const text = document.getElementById('c-text').value.trim();
+  if(!name||!text){ toast('Please enter your name and response.','error'); return; }
+  p.comments.push({id:Date.now(),name,text,date:new Date().toISOString().split('T')[0]});
+  document.getElementById('c-name').value=''; document.getElementById('c-email').value=''; document.getElementById('c-text').value='';
+  renderComments(p);
+  toast('Response posted!','success');
+}
+
+// ======================== ADMIN ========================
+let adminCurrentTab = 'overview';
+function adminTab(tab){
+  document.querySelectorAll('.admin-nav-link').forEach((l,i)=>{ const tabs=['overview','posts','pdfs','categories']; l.classList.toggle('active',tabs[i]===tab) });
+  ['overview','posts','pdfs','categories'].forEach(t=>{ document.getElementById('admin-tab-'+t).style.display=t===tab?'block':'none' });
+  adminCurrentTab = tab;
+  if(tab==='posts') renderPostsTable();
+  if(tab==='pdfs') renderPdfsTable();
+  if(tab==='categories') renderCatsTable();
+  if(tab==='overview') renderAdminOverview();
+}
+function renderAdmin(){ renderAdminOverview(); }
+function renderAdminOverview(){
+  document.getElementById('admin-stats').innerHTML = `
+    <div style="background:var(--paper-warm);border-radius:var(--radius);padding:16px"><div style="font-size:12px;color:var(--ink-muted);margin-bottom:4px">Journal Posts</div><div style="font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--ink)">${db.posts.length}</div></div>
+    <div style="background:var(--paper-warm);border-radius:var(--radius);padding:16px"><div style="font-size:12px;color:var(--ink-muted);margin-bottom:4px">PDF Documents</div><div style="font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--ink)">${db.pdfs.length}</div></div>
+    <div style="background:var(--paper-warm);border-radius:var(--radius);padding:16px"><div style="font-size:12px;color:var(--ink-muted);margin-bottom:4px">Total Downloads</div><div style="font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--ink)">${db.pdfs.reduce((s,p)=>s+p.downloads,0)}</div></div>
+    <div style="background:var(--paper-warm);border-radius:var(--radius);padding:16px"><div style="font-size:12px;color:var(--ink-muted);margin-bottom:4px">Responses</div><div style="font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--ink)">${db.posts.reduce((s,p)=>s+p.comments.length,0)}</div></div>
+  `;
+  const activity = [...db.posts.map(p=>({type:'post',item:p})),...db.pdfs.map(p=>({type:'pdf',item:p}))].sort((a,b)=>new Date(b.item.date)-new Date(a.item.date)).slice(0,6);
+  document.getElementById('recent-activity').innerHTML = `<div style="background:var(--paper-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">${activity.map((a,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;${i>0?'border-top:1px solid var(--border)':''};font-size:14px"><span style="font-size:18px">${a.type==='post'?'📝':'📄'}</span><div style="flex:1"><div style="font-weight:500;color:var(--ink)">${a.item.title}</div><div style="font-size:12px;color:var(--ink-muted)">${a.type==='post'?'Journal Post':'PDF Document'} · ${formatDate(a.item.date)}</div></div><span class="badge ${a.type==='post'?'badge-green':'badge-gold'}">${a.type==='post'?'Post':'PDF'}</span></div>`).join('')}</div>`;
+}
+function renderPostsTable(){
+  document.getElementById('posts-tbody').innerHTML = db.posts.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(p=>`<tr><td><span style="font-weight:500;color:var(--ink);cursor:pointer" onclick="openPost(${p.id})">${p.title}</span></td><td>${catBadge(p.catId)}</td><td style="color:var(--ink-muted);font-size:13px">${formatDate(p.date)}</td><td style="font-size:12px;color:var(--ink-faint)">${p.tags.slice(0,2).map(t=>'#'+t).join(', ')}</td><td><div class="action-btns"><button class="btn-edit" onclick="editPost(${p.id})">Edit</button><button class="btn-del" onclick="deletePost(${p.id})">Delete</button></div></td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink-faint)">No posts yet</td></tr>';
+}
+function renderPdfsTable(){
+  document.getElementById('pdfs-tbody').innerHTML = db.pdfs.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(p=>`<tr><td><span style="font-weight:500;color:var(--ink)">${p.title}</span></td><td>${catBadge(p.catId)}</td><td style="color:var(--ink-muted);font-size:13px">${p.size}</td><td style="font-size:13px"><span style="font-weight:500">${p.downloads}</span> <span style="color:var(--ink-faint)">downloads</span></td><td><div class="action-btns"><button class="btn-edit" onclick="editPdf(${p.id})">Edit</button><button class="btn-del" onclick="deletePdf(${p.id})">Delete</button></div></td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink-faint)">No PDFs yet</td></tr>';
+}
+function renderCatsTable(){
+  document.getElementById('cats-tbody').innerHTML = db.categories.map(c=>`<tr><td><span style="font-weight:500;color:var(--ink)">${c.name}</span></td><td><span class="badge cat-${c.color}">${c.color}</span></td><td style="color:var(--ink-muted)">${db.posts.filter(p=>p.catId===c.id).length}</td><td style="color:var(--ink-muted)">${db.pdfs.filter(p=>p.catId===c.id).length}</td><td><div class="action-btns"><button class="btn-del" onclick="deleteCat(${c.id})">Delete</button></div></td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--ink-faint)">No categories</td></tr>';
+}
+
+// ======================== MODALS ========================
+function openModal(id){ document.getElementById(id).classList.add('open') }
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',function(e){ if(e.target===this) closeModal(this.id) }));
+
+function populateCatSelects(){
+  const opts = db.categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  ['post-cat','pdf-cat'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=opts; });
+}
+
+// POST MODAL
+function openPostModal(post=null){
+  populateCatSelects();
+  document.getElementById('post-id').value = post?post.id:'';
+  document.getElementById('post-modal-title').textContent = post?'Edit Post':'New Journal Post';
+  document.getElementById('post-title').value = post?post.title:'';
+  document.getElementById('post-cat').value = post?post.catId:db.categories[0]?.id||'';
+  document.getElementById('post-excerpt').value = post?post.excerpt:'';
+  document.getElementById('post-content').value = post?post.content:'';
+  document.getElementById('post-tags').value = post?post.tags.join(', '):'';
+  openModal('post-modal');
+}
+function editPost(id){ openPostModal(db.posts.find(p=>p.id===id)) }
+function savePost(){
+  const id = document.getElementById('post-id').value;
+  const title = document.getElementById('post-title').value.trim();
+  const content = document.getElementById('post-content').value.trim();
+  const catId = parseInt(document.getElementById('post-cat').value);
+  if(!title||!content){ toast('Title and content are required.','error'); return; }
+  const tags = document.getElementById('post-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const excerpt = document.getElementById('post-excerpt').value.trim() || content.slice(0,120)+'…';
+  if(id){
+    const p=db.posts.find(x=>x.id===parseInt(id));
+    Object.assign(p,{title,catId,excerpt,content,tags});
+    toast('Post updated!','success');
+  } else {
+    db.posts.push({id:Date.now(),title,catId,excerpt,content,tags,date:new Date().toISOString().split('T')[0],comments:[]});
+    toast('Post published!','success');
+  }
+  closeModal('post-modal'); renderPostsTable(); renderAdminOverview();
+}
+function deletePost(id){
+  if(!confirm('Delete this post?')) return;
+  db.posts = db.posts.filter(p=>p.id!==id);
+  renderPostsTable(); renderAdminOverview();
+  toast('Post deleted.','success');
+}
+
+// PDF MODAL
+function openPdfModal(pdf=null){
+  populateCatSelects();
+  document.getElementById('pdf-id').value = pdf?pdf.id:'';
+  document.getElementById('pdf-modal-title').textContent = pdf?'Edit PDF':'Add PDF Document';
+  document.getElementById('pdf-title').value = pdf?pdf.title:'';
+  document.getElementById('pdf-desc').value = pdf?pdf.desc:'';
+  document.getElementById('pdf-cat').value = pdf?pdf.catId:db.categories[0]?.id||'';
+  document.getElementById('pdf-tags').value = pdf?pdf.tags.join(', '):'';
+  document.getElementById('file-chosen').textContent = '';
+  openModal('pdf-modal');
+}
+function editPdf(id){ openPdfModal(db.pdfs.find(p=>p.id===id)) }
+function fileChosen(input){ if(input.files[0]) document.getElementById('file-chosen').textContent = '✓ '+input.files[0].name; }
+function savePdf(){
+  const id = document.getElementById('pdf-id').value;
+  const title = document.getElementById('pdf-title').value.trim();
+  const catId = parseInt(document.getElementById('pdf-cat').value);
+  if(!title){ toast('Title is required.','error'); return; }
+  const desc = document.getElementById('pdf-desc').value.trim();
+  const tags = document.getElementById('pdf-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const file = document.getElementById('pdf-file').files[0];
+  if(id){
+    const p=db.pdfs.find(x=>x.id===parseInt(id));
+    Object.assign(p,{title,catId,desc,tags});
+    toast('PDF updated!','success');
+  } else {
+    const size = file ? (file.size/1048576).toFixed(1)+' MB' : '—';
+    db.pdfs.push({id:Date.now(),title,catId,desc,tags,size,downloads:0,date:new Date().toISOString().split('T')[0],url:'#'});
+    toast('PDF added to library!','success');
+  }
+  closeModal('pdf-modal'); renderPdfsTable(); renderAdminOverview();
+}
+function deletePdf(id){
+  if(!confirm('Remove this PDF?')) return;
+  db.pdfs = db.pdfs.filter(p=>p.id!==id);
+  renderPdfsTable(); renderAdminOverview();
+  toast('PDF removed.','success');
+}
+
+// CATEGORY MODAL
+function openCatModal(){ document.getElementById('cat-name').value=''; openModal('cat-modal'); }
+function saveCat(){
+  const name = document.getElementById('cat-name').value.trim();
+  if(!name){ toast('Category name required.','error'); return; }
+  const color = document.getElementById('cat-color').value;
+  db.categories.push({id:Date.now(),name,color});
+  closeModal('cat-modal'); renderCatsTable();
+  toast('Category created!','success');
+}
+function deleteCat(id){
+  if(db.posts.some(p=>p.catId===id)||db.pdfs.some(p=>p.catId===id)){
+    toast('Cannot delete — category in use.','error'); return;
+  }
+  if(!confirm('Delete this category?')) return;
+  db.categories = db.categories.filter(c=>c.id!==id);
+  renderCatsTable();
+  toast('Category deleted.','success');
+}
+
+// ======================== TOAST ========================
+function toast(msg, type='success'){
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="toast-icon">${type==='success'?'✓':'!'}</span>${msg}`;
+  wrap.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),400); },3000);
+}
+
+function emptyState(title,desc){ return `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📭</div><div class="empty-title">${title}</div><div class="empty-desc">${desc}</div></div>`; }
+
+// ======================== INIT ========================
+renderHome();
+</script>
+</body>
+</html>
