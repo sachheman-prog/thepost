@@ -515,7 +515,7 @@ textarea.form-input{min-height:90px;resize:vertical}
 // ======================== AUTH ========================
 // Password is hashed with SHA-256. Never store plain text passwords in source.
 // Hash of: THE POST@8kR#mX2q
-const ADMIN_HASH = 'a3b7c2e1f94d08a56b3c7d2e1f04a95b6c3d7e2f1a04b95c6d3e7f2a1b04c95d';
+const ADMIN_HASH = '3b2b0ba4f897c6d5e2040485fafd5b583a3b6dece6053300b63b7683f6350bf1';
 
 async function hashPassword(pw) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
