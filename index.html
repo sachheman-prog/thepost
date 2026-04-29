@@ -676,7 +676,7 @@ function filterPDFs(){
   document.getElementById('pdf-grid').innerHTML = pdfs.map(pdfCard).join('') || emptyState('No documents found','Try a different search or filter.');
 }
 function pdfCard(p){ return `<div class="pdf-card"><div class="pdf-thumb"><div class="pdf-icon">📄</div><div class="pdf-ext">PDF</div></div><div class="pdf-body"><div><div class="card-cat cat-${getCat(p.catId).color}" style="margin-bottom:6px;font-size:10px;padding:2px 8px">${getCat(p.catId).name}</div><div class="pdf-title">${p.title}</div><div class="pdf-desc">${p.desc}</div></div><div class="pdf-footer"><div><div class="pdf-meta">${p.size} · ${formatDate(p.date)}</div><div class="dl-count">⬇ ${p.downloads} download${p.downloads!==1?'s':''}</div></div><button class="pdf-dl-btn" onclick="downloadPdf(${p.id},event)">⬇ Download</button></div></div></div>`; }
-function downloadPdf(id, e){ e.stopPropagation(); const p=db.pdfs.find(x=>x.id===id); if(p){p.downloads++;toast('Download started — '+p.title,'success');} }
+function downloadPdf(id, e){ e.stopPropagation(); const p=db.pdfs.find(x=>x.id===id); if(p){p.downloads++; saveDb(); toast('Download started — '+p.title,'success');} }
 
 // ======================== ARTICLE ========================
 function openPost(id){
@@ -712,7 +712,7 @@ function submitComment(){
   if(!name||!text){ toast('Please enter your name and response.','error'); return; }
   p.comments.push({id:Date.now(),name,text,date:new Date().toISOString().split('T')[0]});
   document.getElementById('c-name').value=''; document.getElementById('c-email').value=''; document.getElementById('c-text').value='';
-  renderComments(p);
+  saveDb(); renderComments(p);
   toast('Response posted!','success');
 }
 
@@ -787,12 +787,12 @@ function savePost(){
     db.posts.push({id:Date.now(),title,catId,excerpt,content,tags,date:new Date().toISOString().split('T')[0],comments:[]});
     toast('Post published!','success');
   }
-  closeModal('post-modal'); renderPostsTable(); renderAdminOverview();
+  saveDb(); closeModal('post-modal'); renderPostsTable(); renderAdminOverview();
 }
 function deletePost(id){
   if(!confirm('Delete this post?')) return;
   db.posts = db.posts.filter(p=>p.id!==id);
-  renderPostsTable(); renderAdminOverview();
+  saveDb(); renderPostsTable(); renderAdminOverview();
   toast('Post deleted.','success');
 }
 
@@ -827,12 +827,12 @@ function savePdf(){
     db.pdfs.push({id:Date.now(),title,catId,desc,tags,size,downloads:0,date:new Date().toISOString().split('T')[0],url:'#'});
     toast('PDF added to library!','success');
   }
-  closeModal('pdf-modal'); renderPdfsTable(); renderAdminOverview();
+  saveDb(); closeModal('pdf-modal'); renderPdfsTable(); renderAdminOverview();
 }
 function deletePdf(id){
   if(!confirm('Remove this PDF?')) return;
   db.pdfs = db.pdfs.filter(p=>p.id!==id);
-  renderPdfsTable(); renderAdminOverview();
+  saveDb(); renderPdfsTable(); renderAdminOverview();
   toast('PDF removed.','success');
 }
 
@@ -843,7 +843,7 @@ function saveCat(){
   if(!name){ toast('Category name required.','error'); return; }
   const color = document.getElementById('cat-color').value;
   db.categories.push({id:Date.now(),name,color});
-  closeModal('cat-modal'); renderCatsTable();
+  saveDb(); closeModal('cat-modal'); renderCatsTable();
   toast('Category created!','success');
 }
 function deleteCat(id){
@@ -852,7 +852,7 @@ function deleteCat(id){
   }
   if(!confirm('Delete this category?')) return;
   db.categories = db.categories.filter(c=>c.id!==id);
-  renderCatsTable();
+  saveDb(); renderCatsTable();
   toast('Category deleted.','success');
 }
 
@@ -869,7 +869,30 @@ function toast(msg, type='success'){
 
 function emptyState(title,desc){ return `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📭</div><div class="empty-title">${title}</div><div class="empty-desc">${desc}</div></div>`; }
 
+// ======================== PERSISTENCE ========================
+function saveDb(){
+  try {
+    localStorage.setItem('THE POST-db', JSON.stringify({
+      categories: db.categories,
+      posts: db.posts,
+      pdfs: db.pdfs
+    }));
+  } catch(e) { console.warn('Could not save data:', e); }
+}
+function loadDb(){
+  try {
+    const saved = localStorage.getItem('THE POST-db');
+    if(saved){
+      const parsed = JSON.parse(saved);
+      if(Array.isArray(parsed.categories) && parsed.categories.length) db.categories = parsed.categories;
+      if(Array.isArray(parsed.posts) && parsed.posts.length) db.posts = parsed.posts;
+      if(Array.isArray(parsed.pdfs) && parsed.pdfs.length) db.pdfs = parsed.pdfs;
+    }
+  } catch(e) { console.warn('Could not load data:', e); }
+}
+
 // ======================== INIT ========================
+loadDb();
 renderHome();
 </script>
 </body>
